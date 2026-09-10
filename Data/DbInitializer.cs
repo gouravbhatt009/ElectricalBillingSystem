@@ -17,9 +17,9 @@ namespace ElectricalBilling.Data
             if (!await context.Users.AnyAsync())
             {
 
-                var seedUsername = configuration["SeedAdmin:Username"] ?? "admin";
-                var seedEmail = configuration["SeedAdmin:Email"] ?? "admin@leeladharbhatt.local";
-                var seedPassword = configuration["SeedAdmin:Password"] ?? "ChangeMe@123";
+                var seedUsername = configuration["SeedAdmin:Username"] ?? "lalitbhatt";
+                var seedEmail = configuration["SeedAdmin:Email"] ?? "liladharashu378@gmail.com";
+                var seedPassword = configuration["SeedAdmin:Password"] ?? "lalitbhatt@123";
 
                 await authService.CreateUserAsync("Leeladhar Bhatt", seedUsername, seedEmail, seedPassword);
 
