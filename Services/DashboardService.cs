@@ -27,59 +27,76 @@ namespace ElectricalBilling.Services
 
             var activeInvoices = _context.Invoices.Where(i => i.Status != InvoiceStatus.Cancelled);
 
-            // Fixed for SQLite: Fetch today's invoices into memory first before applying Sum on decimal
+            // 1. Today's Invoices (Loaded into memory for decimal sum)
             var todayInvoicesList = await activeInvoices
                 .Where(i => i.InvoiceDate >= today && i.InvoiceDate < today.AddDays(1))
-                .Select(i => new { i.GrandTotal })
+                .Select(i => i.GrandTotal)
                 .ToListAsync();
 
             var todayInvoiceCount = todayInvoicesList.Count;
-            var todayInvoiceAmount = todayInvoicesList.Sum(i => i.GrandTotal);
+            var todayInvoiceAmount = todayInvoicesList.Sum();
 
-            var currentMonthAmount = await activeInvoices
+            // 2. Current Month Amount (Loaded into memory for decimal sum)
+            var monthInvoicesList = await activeInvoices
                 .Where(i => i.InvoiceDate >= monthStart && i.InvoiceDate < monthEnd)
-                .SumAsync(i => (decimal?)i.GrandTotal) ?? 0;
+                .Select(i => i.GrandTotal)
+                .ToListAsync();
 
-            var totalPaidAmount = await _context.Payments
+            var currentMonthAmount = monthInvoicesList.Sum();
+
+            // 3. Total Paid Amount (Loaded into memory for decimal sum)
+            var paymentsList = await _context.Payments
                 .Where(p => p.Invoice!.Status != InvoiceStatus.Cancelled)
-                .SumAsync(p => (decimal?)p.Amount) ?? 0;
+                .Select(p => p.Amount)
+                .ToListAsync();
 
-            // Outstanding = GrandTotal - Paid, computed per invoice so partially
-            // paid bills contribute only their remaining balance.
-            var unpaidInvoices = await activeInvoices
+            var totalPaidAmount = paymentsList.Sum();
+
+            // 4. Unpaid & Outstanding calculations (In-memory aggregation)
+            var unpaidData = await activeInvoices
                 .Where(i => i.Status == InvoiceStatus.Pending || i.Status == InvoiceStatus.Partial)
                 .Select(i => new
                 {
                     i.Status,
-                    Outstanding = i.GrandTotal - (i.Payments.Sum(p => (decimal?)p.Amount) ?? 0)
+                    i.GrandTotal,
+                    PaymentAmounts = i.Payments.Select(p => p.Amount).ToList()
                 })
                 .ToListAsync();
 
-            var totalPendingAmount = unpaidInvoices
+            var unpaidProcessed = unpaidData.Select(i => new
+            {
+                i.Status,
+                Outstanding = i.GrandTotal - i.PaymentAmounts.Sum()
+            }).ToList();
+
+            var totalPendingAmount = unpaidProcessed
                 .Where(i => i.Status == InvoiceStatus.Pending)
                 .Sum(i => Math.Max(0, i.Outstanding));
 
-            var totalOutstandingAmount = unpaidInvoices
+            var totalOutstandingAmount = unpaidProcessed
                 .Sum(i => Math.Max(0, i.Outstanding));
 
-            var recentInvoices = await _context.Invoices
+            // 5. Recent Invoices (Loaded raw data first, compute sums in memory)
+            var recentInvoicesRaw = await _context.Invoices
                 .AsNoTracking()
                 .Include(i => i.Customer)
+                .Include(i => i.Payments)
                 .OrderByDescending(i => i.InvoiceDate)
                 .ThenByDescending(i => i.InvoiceId)
                 .Take(8)
-                .Select(i => new InvoiceListItemViewModel
-                {
-                    InvoiceId = i.InvoiceId,
-                    InvoiceNumber = i.InvoiceNumber,
-                    InvoiceDate = i.InvoiceDate,
-                    CustomerName = i.Customer!.CustomerName,
-                    CustomerMobile = i.Customer!.Mobile,
-                    GrandTotal = i.GrandTotal,
-                    PaidAmount = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0,
-                    Status = i.Status
-                })
                 .ToListAsync();
+
+            var recentInvoices = recentInvoicesRaw.Select(i => new InvoiceListItemViewModel
+            {
+                InvoiceId = i.InvoiceId,
+                InvoiceNumber = i.InvoiceNumber,
+                InvoiceDate = i.InvoiceDate,
+                CustomerName = i.Customer?.CustomerName ?? string.Empty,
+                CustomerMobile = i.Customer?.Mobile ?? string.Empty,
+                GrandTotal = i.GrandTotal,
+                PaidAmount = i.Payments.Sum(p => p.Amount),
+                Status = i.Status
+            }).ToList();
 
             foreach (var invoice in recentInvoices)
             {

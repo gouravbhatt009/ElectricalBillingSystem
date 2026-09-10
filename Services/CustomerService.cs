@@ -80,10 +80,17 @@ namespace ElectricalBilling.Services
                 return null;
             }
 
-            var invoices = await _context.Invoices
+            // Materialize the invoices (with Payments) first — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns,
+            // so the Payments.Sum() below must run in memory, not in SQL.
+            var invoiceEntities = await _context.Invoices
+                .Include(i => i.Payments)
                 .Where(i => i.CustomerId == customerId && i.Status != InvoiceStatus.Cancelled)
                 .OrderByDescending(i => i.InvoiceDate)
                 .ThenByDescending(i => i.InvoiceId)
+                .ToListAsync();
+
+            var invoices = invoiceEntities
                 .Select(i => new
                 {
                     i.InvoiceId,
@@ -91,9 +98,9 @@ namespace ElectricalBilling.Services
                     i.InvoiceDate,
                     i.GrandTotal,
                     i.Status,
-                    Paid = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0
+                    Paid = i.Payments.Sum(p => p.Amount)
                 })
-                .ToListAsync();
+                .ToList();
 
             customer.TotalInvoices = invoices.Count;
             customer.TotalBilledAmount = invoices.Sum(i => i.GrandTotal);

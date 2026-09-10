@@ -288,11 +288,18 @@ namespace ElectricalBilling.Services
             var pageSize = filter.PageSize > 0 ? filter.PageSize : 20;
             var pageNumber = filter.PageNumber > 0 ? filter.PageNumber : 1;
 
-            var items = await query
+            // Fetch entities (with Payments included) into memory first, then
+            // compute the decimal Sum() client-side — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns.
+            var pagedInvoices = await query
+                .Include(i => i.Payments)
                 .OrderByDescending(i => i.InvoiceDate)
                 .ThenByDescending(i => i.InvoiceId)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
+                .ToListAsync();
+
+            var items = pagedInvoices
                 .Select(i => new InvoiceListItemViewModel
                 {
                     InvoiceId = i.InvoiceId,
@@ -301,10 +308,10 @@ namespace ElectricalBilling.Services
                     CustomerName = i.Customer!.CustomerName,
                     CustomerMobile = i.Customer!.Mobile,
                     GrandTotal = i.GrandTotal,
-                    PaidAmount = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0,
+                    PaidAmount = i.Payments.Sum(p => p.Amount),
                     Status = i.Status
                 })
-                .ToListAsync();
+                .ToList();
 
             foreach (var item in items)
             {

@@ -54,13 +54,20 @@ namespace ElectricalBilling.Services
         {
             var query = BuildFilteredQuery(filter);
 
-            var rows = await query
+            // Materialize the invoices (with Payments) first — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns,
+            // so the Payments.Sum() below must run in memory, not in SQL.
+            var invoices = await query
+                .Include(i => i.Payments)
+                .ToListAsync();
+
+            var rows = invoices
                 .Select(i => new
                 {
                     i.GrandTotal,
-                    Paid = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0
+                    Paid = i.Payments.Sum(p => p.Amount)
                 })
-                .ToListAsync();
+                .ToList();
 
             var invoiceAmount = rows.Sum(r => r.GrandTotal);
             var paidAmount = rows.Sum(r => r.Paid);
@@ -79,14 +86,21 @@ namespace ElectricalBilling.Services
         {
             var query = BuildFilteredQuery(filter);
 
-            var rows = await query
+            // Materialize the invoices (with Payments) first — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns,
+            // so the Payments.Sum() below must run in memory, not in SQL.
+            var invoices = await query
+                .Include(i => i.Payments)
+                .ToListAsync();
+
+            var rows = invoices
                 .Select(i => new
                 {
                     i.InvoiceDate,
                     i.GrandTotal,
-                    Paid = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0
+                    Paid = i.Payments.Sum(p => p.Amount)
                 })
-                .ToListAsync();
+                .ToList();
 
             return rows
                 .GroupBy(r => r.InvoiceDate.Date)
@@ -106,14 +120,21 @@ namespace ElectricalBilling.Services
         {
             var query = BuildFilteredQuery(filter);
 
-            var rows = await query
+            // Materialize the invoices (with Payments) first — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns,
+            // so the Payments.Sum() below must run in memory, not in SQL.
+            var invoices = await query
+                .Include(i => i.Payments)
+                .ToListAsync();
+
+            var rows = invoices
                 .Select(i => new
                 {
                     i.InvoiceDate,
                     i.GrandTotal,
-                    Paid = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0
+                    Paid = i.Payments.Sum(p => p.Amount)
                 })
-                .ToListAsync();
+                .ToList();
 
             return rows
                 .GroupBy(r => new { r.InvoiceDate.Year, r.InvoiceDate.Month })
@@ -134,15 +155,22 @@ namespace ElectricalBilling.Services
         {
             var query = BuildFilteredQuery(filter);
 
-            var rows = await query
+            // Materialize the invoices (with Payments) first — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns,
+            // so the Payments.Sum() below must run in memory, not in SQL.
+            var invoices = await query
+                .Include(i => i.Payments)
+                .ToListAsync();
+
+            var rows = invoices
                 .Select(i => new
                 {
                     i.CustomerId,
                     CustomerName = i.Customer!.CustomerName,
                     i.GrandTotal,
-                    Paid = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0
+                    Paid = i.Payments.Sum(p => p.Amount)
                 })
-                .ToListAsync();
+                .ToList();
 
             return rows
                 .GroupBy(r => new { r.CustomerId, r.CustomerName })
@@ -178,7 +206,14 @@ namespace ElectricalBilling.Services
             if (pendingFilter.DateTo.HasValue) query = query.Where(i => i.InvoiceDate <= pendingFilter.DateTo.Value.Date);
             if (pendingFilter.CustomerId.HasValue) query = query.Where(i => i.CustomerId == pendingFilter.CustomerId.Value);
 
-            var rows = await query
+            // Materialize the invoices (with Payments) first — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns,
+            // so the Payments.Sum() below must run in memory, not in SQL.
+            var invoices = await query
+                .Include(i => i.Payments)
+                .ToListAsync();
+
+            var rows = invoices
                 .Select(i => new
                 {
                     i.InvoiceId,
@@ -187,9 +222,9 @@ namespace ElectricalBilling.Services
                     CustomerName = i.Customer!.CustomerName,
                     i.GrandTotal,
                     i.Status,
-                    Paid = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0
+                    Paid = i.Payments.Sum(p => p.Amount)
                 })
-                .ToListAsync();
+                .ToList();
 
             return rows
                 .Select(r => new PendingPaymentReportItem
@@ -243,7 +278,14 @@ namespace ElectricalBilling.Services
             if (filter.DateTo.HasValue) query = query.Where(i => i.InvoiceDate <= filter.DateTo.Value.Date);
             if (filter.CustomerId.HasValue) query = query.Where(i => i.CustomerId == filter.CustomerId.Value);
 
-            var rows = await query
+            // Materialize the invoices (with Payments) first — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns,
+            // so the Payments.Sum() below must run in memory, not in SQL.
+            var invoices = await query
+                .Include(i => i.Payments)
+                .ToListAsync();
+
+            var rows = invoices
                 .Select(i => new
                 {
                     i.InvoiceId,
@@ -252,9 +294,9 @@ namespace ElectricalBilling.Services
                     i.InvoiceDate,
                     i.GrandTotal,
                     i.Status,
-                    Paid = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0
+                    Paid = i.Payments.Sum(p => p.Amount)
                 })
-                .ToListAsync();
+                .ToList();
 
             return rows
                 .Select(r => new OutstandingReportItem

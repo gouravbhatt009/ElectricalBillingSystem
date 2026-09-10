@@ -23,9 +23,13 @@ namespace ElectricalBilling.Services
 
             if (invoice is null) return null;
 
-            var paid = await _context.Payments
+            // Pull the amounts into memory before summing — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns.
+            var paidAmounts = await _context.Payments
                 .Where(p => p.InvoiceId == invoiceId)
-                .SumAsync(p => (decimal?)p.Amount) ?? 0;
+                .Select(p => p.Amount)
+                .ToListAsync();
+            var paid = paidAmounts.Sum();
 
             var outstanding = Math.Max(0, invoice.GrandTotal - paid);
 
@@ -70,9 +74,13 @@ namespace ElectricalBilling.Services
                 return (false, "Please select a payment mode.");
             }
 
-            var paidSoFar = await _context.Payments
+            // Pull the amounts into memory before summing — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns.
+            var paidSoFarAmounts = await _context.Payments
                 .Where(p => p.InvoiceId == invoice.InvoiceId)
-                .SumAsync(p => (decimal?)p.Amount) ?? 0;
+                .Select(p => p.Amount)
+                .ToListAsync();
+            var paidSoFar = paidSoFarAmounts.Sum();
 
             var outstanding = Math.Max(0, invoice.GrandTotal - paidSoFar);
 
@@ -161,9 +169,13 @@ namespace ElectricalBilling.Services
 
             if (invoice is null) return null;
 
-            var paidExcludingThis = await _context.Payments
+            // Pull the amounts into memory before summing — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns.
+            var paidExcludingThisAmounts = await _context.Payments
                 .Where(p => p.InvoiceId == payment.InvoiceId && p.PaymentId != paymentId)
-                .SumAsync(p => (decimal?)p.Amount) ?? 0;
+                .Select(p => p.Amount)
+                .ToListAsync();
+            var paidExcludingThis = paidExcludingThisAmounts.Sum();
 
             var outstandingExcludingThis = Math.Max(0, invoice.GrandTotal - paidExcludingThis);
 
@@ -219,9 +231,13 @@ namespace ElectricalBilling.Services
                 return (false, "Please select a payment mode.");
             }
 
-            var paidExcludingThis = await _context.Payments
+            // Pull the amounts into memory before summing — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns.
+            var paidExcludingThisAmounts = await _context.Payments
                 .Where(p => p.InvoiceId == invoice.InvoiceId && p.PaymentId != payment.PaymentId)
-                .SumAsync(p => (decimal?)p.Amount) ?? 0;
+                .Select(p => p.Amount)
+                .ToListAsync();
+            var paidExcludingThis = paidExcludingThisAmounts.Sum();
 
             var outstandingExcludingThis = Math.Max(0, invoice.GrandTotal - paidExcludingThis);
             var amount = Math.Round(model.Amount.Value, 2);
@@ -265,9 +281,13 @@ namespace ElectricalBilling.Services
 
             _context.Payments.Remove(payment);
 
-            var remainingPaid = await _context.Payments
+            // Pull the amounts into memory before summing — SQLite's EF Core
+            // provider cannot translate Sum()/SumAsync() over decimal columns.
+            var remainingPaidAmounts = await _context.Payments
                 .Where(p => p.InvoiceId == invoice.InvoiceId && p.PaymentId != paymentId)
-                .SumAsync(p => (decimal?)p.Amount) ?? 0;
+                .Select(p => p.Amount)
+                .ToListAsync();
+            var remainingPaid = remainingPaidAmounts.Sum();
 
             RecalculateStatus(invoice, remainingPaid);
 
