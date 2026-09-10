@@ -12,13 +12,13 @@ QuestPDF.Settings.License = LicenseType.Community;
 var builder = WebApplication.CreateBuilder(args);
 
 // -------------------------------------------------------------------
-// 1. Database (SQL Server via EF Core)
+// 1. Database (SQLite via EF Core)
 // -------------------------------------------------------------------
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found. Set it in appsettings.json or User Secrets.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlite(connectionString));
 
 // -------------------------------------------------------------------
 // 2. MVC
