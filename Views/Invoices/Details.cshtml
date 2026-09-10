@@ -1,0 +1,269 @@
+@model ElectricalBilling.ViewModels.InvoiceDetailsViewModel
+@{
+    ViewData["Title"] = $"Bill {Model.InvoiceNumber}";
+
+    var whatsAppMessage =
+        $"Namaste {Model.CustomerName},\n\n" +
+        $"Please find attached your invoice from {Model.Business.BusinessName}.\n\n" +
+        $"Bill No: {Model.InvoiceNumber}\n" +
+        $"Amount: \u20b9{Model.GrandTotal:N2}\n\n" +
+        "Thank you.";
+    var whatsAppUrl = "https://wa.me/?text=" + Uri.EscapeDataString(whatsAppMessage);
+}
+
+<div class="px-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div>
+            <h3 class="fw-bold mb-0">@Model.InvoiceNumber</h3>
+            <span class="text-muted">@Model.InvoiceDate.ToString("dd/MM/yyyy")</span>
+        </div>
+        <div>
+            @switch (Model.Status)
+            {
+                case ElectricalBilling.Models.InvoiceStatus.Paid:
+                    <span class="badge bg-success fs-6">Paid</span>
+                    break;
+                case ElectricalBilling.Models.InvoiceStatus.Partial:
+                    <span class="badge bg-warning text-dark fs-6">Partial</span>
+                    break;
+                case ElectricalBilling.Models.InvoiceStatus.Cancelled:
+                    <span class="badge bg-secondary fs-6">Cancelled</span>
+                    break;
+                default:
+                    <span class="badge bg-danger fs-6">Pending</span>
+                    break;
+            }
+        </div>
+    </div>
+
+    @if (Model.Status != ElectricalBilling.Models.InvoiceStatus.Cancelled)
+    {
+        <div class="row g-2 mb-3 no-print">
+            <div class="col-6 col-md-4">
+                <div class="card shadow-sm p-2 text-center">
+                    <div class="text-muted small">Invoice Total</div>
+                    <div class="fw-bold fs-5">₹@Model.GrandTotal.ToString("N2")</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="card shadow-sm p-2 text-center">
+                    <div class="text-muted small">Paid</div>
+                    <div class="fw-bold fs-5 text-success">₹@Model.PaidAmount.ToString("N2")</div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card shadow-sm p-2 text-center">
+                    <div class="text-muted small">Outstanding</div>
+                    <div class="fw-bold fs-5 @(Model.OutstandingAmount > 0 ? "text-danger" : "text-success")">₹@Model.OutstandingAmount.ToString("N2")</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Action buttons: hidden when printing -->
+    <div class="d-flex flex-wrap gap-2 mb-3 no-print">
+        <a asp-action="DownloadPdf" asp-route-id="@Model.InvoiceId" class="btn btn-primary btn-lg">
+            ⬇ Download PDF
+        </a>
+        <button type="button" class="btn btn-outline-secondary btn-lg" onclick="window.print()">
+            🖨 Print
+        </button>
+        <a href="@whatsAppUrl" target="_blank" rel="noopener" class="btn btn-success btn-lg">
+            ✆ Share on WhatsApp
+        </a>
+        @if (Model.Status != ElectricalBilling.Models.InvoiceStatus.Cancelled && Model.OutstandingAmount > 0)
+        {
+            <a asp-controller="Payments" asp-action="Add" asp-route-invoiceId="@Model.InvoiceId" class="btn btn-success btn-lg">
+                ₹ Add Payment
+            </a>
+        }
+    </div>
+    <div class="alert alert-light border small no-print">
+        <strong>WhatsApp sharing:</strong> this opens WhatsApp with the message pre-filled and a contact picker —
+        browsers can't auto-attach a file to WhatsApp, so first tap <strong>Download PDF</strong> above, then
+        attach the downloaded file from your Downloads folder once you're in the chat.
+    </div>
+
+    <!-- Printable invoice area -->
+    <div class="card shadow-sm p-4 print-area">
+        <div class="text-center mb-3 pb-3 border-bottom">
+            <h2 class="fw-bold mb-1" style="color:#1a3d7c;">@Model.Business.BusinessName</h2>
+            @if (!string.IsNullOrWhiteSpace(Model.Business.Description))
+            {
+                <div class="small text-primary">@Model.Business.Description</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Business.Address))
+            {
+                <div class="small">@Model.Business.Address</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Business.Mobile))
+            {
+                <div class="small fw-semibold">Mob. @Model.Business.Mobile</div>
+            }
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <h6 class="text-muted mb-1">M/s</h6>
+                <div class="fw-bold fs-5">@Model.CustomerName</div>
+                <div>@Model.CustomerMobile</div>
+                @if (!string.IsNullOrWhiteSpace(Model.CustomerAddress))
+                {
+                    <div class="text-muted">@Model.CustomerAddress</div>
+                }
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>S.No</th>
+                        <th>Particular</th>
+                        <th class="text-end">Qty</th>
+                        <th class="text-end">Rate (₹)</th>
+                        <th class="text-end">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td>@item.SNo</td>
+                            <td>@item.Particular</td>
+                            <td class="text-end">@item.Qty.ToString("N2")</td>
+                            <td class="text-end">@item.Rate.ToString("N2")</td>
+                            <td class="text-end">@item.Amount.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row justify-content-end">
+            <div class="col-md-5">
+                <dl class="row mb-0">
+                    <dt class="col-7">Subtotal</dt><dd class="col-5 text-end">₹@Model.SubTotal.ToString("N2")</dd>
+                    @if (Model.GstEnabled)
+                    {
+                        <dt class="col-7">CGST (@Model.CgstPercent.ToString("0.##")%)</dt><dd class="col-5 text-end">₹@Model.CgstAmount.ToString("N2")</dd>
+                        <dt class="col-7">SGST (@Model.SgstPercent.ToString("0.##")%)</dt><dd class="col-5 text-end">₹@Model.SgstAmount.ToString("N2")</dd>
+                    }
+                    <dt class="col-7 fw-bold fs-5 border-top pt-2 mt-2">Grand Total</dt>
+                    <dd class="col-5 text-end fw-bold fs-5 border-top pt-2 mt-2">₹@Model.GrandTotal.ToString("N2")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <span class="text-muted small">Amount in Words:</span>
+            <div class="fst-italic">@Model.AmountInWords</div>
+        </div>
+
+        <div class="mt-2">
+            <span class="text-muted small">Payment Status:</span> <strong>@Model.Status</strong>
+            @if (Model.Status != ElectricalBilling.Models.InvoiceStatus.Cancelled)
+            {
+                <span class="text-muted small ms-2">(Paid ₹@Model.PaidAmount.ToString("N2") / Outstanding ₹@Model.OutstandingAmount.ToString("N2"))</span>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <div class="mt-3">
+                <span class="text-muted small">Notes:</span>
+                <div>@Model.Notes</div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Business.BankDetails) || !string.IsNullOrWhiteSpace(Model.Business.UpiId))
+        {
+            <div class="mt-3 small text-muted">
+                @if (!string.IsNullOrWhiteSpace(Model.Business.BankDetails))
+                {
+                    <div>Bank Details: @Model.Business.BankDetails</div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Business.UpiId))
+                {
+                    <div>UPI ID: @Model.Business.UpiId</div>
+                }
+            </div>
+        }
+
+        <div class="row mt-4 pt-3 border-top">
+            <div class="col-6 small text-muted align-self-end">E. &amp; O.E.</div>
+            <div class="col-6 text-end">
+                <div style="height:50px;"></div>
+                <div class="border-top d-inline-block px-4 pt-1 small">Signature</div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Business.InvoiceFooter))
+        {
+            <div class="text-center small text-muted fst-italic mt-3">@Model.Business.InvoiceFooter</div>
+        }
+    </div>
+
+    @if (Model.Status != ElectricalBilling.Models.InvoiceStatus.Cancelled)
+    {
+        <div class="card shadow-sm p-3 mt-3 no-print">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Payment History</h5>
+                @if (Model.OutstandingAmount > 0)
+                {
+                    <a asp-controller="Payments" asp-action="Add" asp-route-invoiceId="@Model.InvoiceId" class="btn btn-sm btn-success">+ Add Payment</a>
+                }
+            </div>
+            @if (!Model.Payments.Any())
+            {
+                <p class="text-muted mb-0">No payments recorded yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-2">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Mode</th>
+                                <th>Reference</th>
+                                <th class="text-end">Amount</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var payment in Model.Payments)
+                            {
+                                <tr>
+                                    <td>@payment.PaymentDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@payment.PaymentMode</td>
+                                    <td>@(payment.ReferenceNumber ?? "-")</td>
+                                    <td class="text-end">₹@payment.Amount.ToString("N2")</td>
+                                    <td class="text-end">
+                                        <a asp-controller="Payments" asp-action="Edit" asp-route-id="@payment.PaymentId" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-end">
+                    <span class="text-muted">Total Paid:</span> <strong class="text-success">₹@Model.PaidAmount.ToString("N2")</strong>
+                    &nbsp;|&nbsp;
+                    <span class="text-muted">Outstanding:</span> <strong class="@(Model.OutstandingAmount > 0 ? "text-danger" : "text-success")">₹@Model.OutstandingAmount.ToString("N2")</strong>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="mt-3 no-print">
+        @if (Model.Status != ElectricalBilling.Models.InvoiceStatus.Cancelled)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.InvoiceId" class="btn btn-outline-secondary btn-lg">Edit Bill</a>
+            <form asp-action="Cancel" asp-route-id="@Model.InvoiceId" method="post" class="d-inline">
+                <button type="submit" class="btn btn-outline-danger btn-lg" onclick="return confirm('Cancel this invoice? This cannot be undone.');">Cancel Invoice</button>
+            </form>
+        }
+        <a asp-action="Index" class="btn btn-outline-primary btn-lg">Back to Bills</a>
+    </div>
+</div>

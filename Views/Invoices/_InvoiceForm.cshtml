@@ -1,0 +1,130 @@
+@model ElectricalBilling.ViewModels.InvoiceViewModel
+@using ElectricalBilling.ViewModels
+@{
+    var services = (List<ServiceViewModel>)(ViewBag.Services ?? new List<ServiceViewModel>());
+}
+
+<input type="hidden" asp-for="InvoiceId" />
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <label class="form-label">Bill No.</label>
+        <input type="text" class="form-control" value="@Model.InvoiceNumber" readonly />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="InvoiceDate" class="form-label"></label>
+        <input asp-for="InvoiceDate" class="form-control" />
+        <span asp-validation-for="InvoiceDate" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Status</label>
+        <input type="text" class="form-control" value="@Model.Status" readonly />
+    </div>
+
+    <div class="col-12 position-relative">
+        <label class="form-label">M/s (Customer)</label>
+        <input type="text" id="customerSearchInput" class="form-control form-control-lg" autocomplete="off"
+               placeholder="Type customer name or mobile number..." value="@Model.CustomerName" />
+        <input type="hidden" asp-for="CustomerId" id="customerIdInput" />
+        <div id="customerResults" class="list-group position-absolute w-100 shadow" style="z-index:1000; display:none; max-height:260px; overflow-y:auto;"></div>
+        <span asp-validation-for="CustomerId" class="text-danger"></span>
+        <div class="form-text">
+            Can't find them? <a asp-controller="Customers" asp-action="Create" target="_blank" rel="noopener">Add a new customer</a>, then search again here.
+        </div>
+    </div>
+</div>
+
+<hr class="my-4" />
+
+<h5 class="fw-bold mb-3">Items</h5>
+<div class="table-responsive">
+    <table class="table table-bordered align-middle" id="itemsTable">
+        <thead class="table-light">
+            <tr>
+                <th style="width:5%">S.No</th>
+                <th style="width:40%">Particular</th>
+                <th style="width:13%">Qty</th>
+                <th style="width:16%">Rate (₹)</th>
+                <th style="width:16%">Amount (₹)</th>
+                <th style="width:5%"></th>
+            </tr>
+        </thead>
+        <tbody id="itemsBody">
+            @for (var i = 0; i < Model.Items.Count; i++)
+            {
+                var item = Model.Items[i];
+                <tr class="item-row">
+                    <td class="text-center row-sno align-middle">@(i + 1)</td>
+                    <td>
+                        <select class="form-select form-select-sm service-select mb-1" name="Items[@i].ServiceId">
+                            <option value="">-- Custom / Type manually --</option>
+                            @foreach (var svc in services)
+                            {
+                                <option value="@svc.ServiceId"
+                                        data-rate="@svc.DefaultRate"
+                                        selected="@(item.ServiceId == svc.ServiceId ? "selected" : null)">
+                                    @svc.ServiceName
+                                </option>
+                            }
+                        </select>
+                        <input type="text" class="form-control form-control-sm particular-input" name="Items[@i].Particular" value="@item.Particular" placeholder="Description of work" />
+                    </td>
+                    <td><input type="number" step="0.01" min="0" class="form-control form-control-sm qty-input" name="Items[@i].Qty" value="@item.Qty" /></td>
+                    <td><input type="number" step="0.01" min="0" class="form-control form-control-sm rate-input" name="Items[@i].Rate" value="@item.Rate" /></td>
+                    <td class="text-end amount-cell">₹0.00</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-row-btn" title="Remove item">✕</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<button type="button" id="addItemBtn" class="btn btn-outline-primary btn-sm mb-4">+ Add Item</button>
+
+<div class="row justify-content-end">
+    <div class="col-md-5">
+        <div class="card shadow-sm p-3">
+            <div class="form-check form-switch mb-2 fs-5">
+                <input class="form-check-input" type="checkbox" role="switch" id="gstEnabledInput" asp-for="GstEnabled" />
+                <label class="form-check-label" asp-for="GstEnabled"></label>
+            </div>
+            <div id="gstPercentRow" class="row g-2 mb-3 @(Model.GstEnabled ? "" : "d-none")">
+                <div class="col-6">
+                    <label asp-for="CgstPercent" class="form-label small"></label>
+                    <input asp-for="CgstPercent" type="number" step="0.01" min="0" max="100" class="form-control form-control-sm" id="cgstPercentInput" />
+                </div>
+                <div class="col-6">
+                    <label asp-for="SgstPercent" class="form-label small"></label>
+                    <input asp-for="SgstPercent" type="number" step="0.01" min="0" max="100" class="form-control form-control-sm" id="sgstPercentInput" />
+                </div>
+            </div>
+            <dl class="row mb-0">
+                <dt class="col-7">Subtotal</dt>
+                <dd class="col-5 text-end" id="subtotalDisplay">₹0.00</dd>
+
+                <dt class="col-7 gst-row @(Model.GstEnabled ? "" : "d-none")">CGST</dt>
+                <dd class="col-5 text-end gst-row @(Model.GstEnabled ? "" : "d-none")" id="cgstDisplay">₹0.00</dd>
+
+                <dt class="col-7 gst-row @(Model.GstEnabled ? "" : "d-none")">SGST</dt>
+                <dd class="col-5 text-end gst-row @(Model.GstEnabled ? "" : "d-none")" id="sgstDisplay">₹0.00</dd>
+
+                <dt class="col-7 fw-bold fs-5 border-top pt-2 mt-2">Grand Total</dt>
+                <dd class="col-5 text-end fw-bold fs-5 border-top pt-2 mt-2" id="grandTotalDisplay">₹0.00</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-8">
+        <label asp-for="Notes" class="form-label"></label>
+        <textarea asp-for="Notes" class="form-control" rows="2" placeholder="Optional"></textarea>
+    </div>
+</div>
+
+<div class="mt-4">
+    <button type="submit" class="btn btn-primary btn-lg px-5">Save Invoice</button>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancel</a>
+</div>

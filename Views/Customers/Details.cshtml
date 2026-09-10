@@ -1,0 +1,106 @@
+@model CustomerDetailsViewModel
+@{
+    ViewData["Title"] = "Customer Details";
+}
+
+<div class="px-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-bold mb-0">@Model.CustomerName</h3>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.CustomerId" class="btn btn-outline-secondary">Edit</a>
+            <a asp-action="Index" class="btn btn-outline-primary">Back to Customers</a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 h-100">
+                <h5 class="mb-3">Profile</h5>
+                <dl class="row mb-0">
+                    <dt class="col-5">Company</dt><dd class="col-7">@(Model.CompanyName ?? "-")</dd>
+                    <dt class="col-5">Mobile</dt><dd class="col-7">@Model.Mobile</dd>
+                    <dt class="col-5">Alternate</dt><dd class="col-7">@(Model.AlternateMobile ?? "-")</dd>
+                    <dt class="col-5">Email</dt><dd class="col-7">@(Model.Email ?? "-")</dd>
+                    <dt class="col-5">Address</dt><dd class="col-7">@(Model.Address ?? "-")</dd>
+                    <dt class="col-5">City / State</dt><dd class="col-7">@(Model.City ?? "-") @(Model.State != null ? ", " + Model.State : "")</dd>
+                    <dt class="col-5">Pincode</dt><dd class="col-7">@(Model.Pincode ?? "-")</dd>
+                    <dt class="col-5">GSTIN</dt><dd class="col-7">@(Model.GSTIN ?? "-")</dd>
+                    <dt class="col-5">Notes</dt><dd class="col-7">@(Model.Notes ?? "-")</dd>
+                    <dt class="col-5">Status</dt>
+                    <dd class="col-7">
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm p-3 h-100">
+                <h5 class="mb-3">Billing Summary</h5>
+                <dl class="row mb-3">
+                    <dt class="col-7">Total Invoices</dt><dd class="col-5 text-end">@Model.TotalInvoices</dd>
+                    <dt class="col-7">Total Billed</dt><dd class="col-5 text-end">₹@Model.TotalBilledAmount.ToString("N2")</dd>
+                    <dt class="col-7">Total Paid</dt><dd class="col-5 text-end text-success">₹@Model.TotalPaidAmount.ToString("N2")</dd>
+                    <dt class="col-7 fw-bold border-top pt-2 mt-2">Total Outstanding</dt>
+                    <dd class="col-5 text-end fw-bold text-danger border-top pt-2 mt-2">₹@Model.TotalOutstandingAmount.ToString("N2")</dd>
+                </dl>
+                <a asp-controller="Invoices" asp-action="Create" asp-route-customerId="@Model.CustomerId" class="btn btn-primary btn-lg">+ New Bill for this Customer</a>
+                <a asp-controller="Invoices" asp-action="Index" asp-route-Customer="@Model.Mobile" class="btn btn-outline-secondary mt-2">View Invoice History</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm p-3 mt-3">
+        <h5 class="mb-3">Invoice History</h5>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>Bill No</th><th>Date</th><th class="text-end">Amount</th><th class="text-end">Paid</th><th class="text-end">Outstanding</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @if (!Model.InvoiceHistory.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-3">No invoices yet for this customer.</td></tr>
+                    }
+                    @foreach (var inv in Model.InvoiceHistory)
+                    {
+                        <tr>
+                            <td>@inv.InvoiceNumber</td>
+                            <td>@inv.InvoiceDate.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end">₹@inv.GrandTotal.ToString("N2")</td>
+                            <td class="text-end text-success">₹@inv.PaidAmount.ToString("N2")</td>
+                            <td class="text-end @(inv.OutstandingAmount > 0 ? "text-danger" : "")">₹@inv.OutstandingAmount.ToString("N2")</td>
+                            <td>
+                                @switch (inv.Status)
+                                {
+                                    case ElectricalBilling.Models.InvoiceStatus.Paid:
+                                        <span class="badge bg-success">Paid</span>
+                                        break;
+                                    case ElectricalBilling.Models.InvoiceStatus.Partial:
+                                        <span class="badge bg-warning text-dark">Partial</span>
+                                        break;
+                                    case ElectricalBilling.Models.InvoiceStatus.Cancelled:
+                                        <span class="badge bg-secondary">Cancelled</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-danger">Pending</span>
+                                        break;
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-controller="Invoices" asp-action="Details" asp-route-id="@inv.InvoiceId" class="btn btn-sm btn-outline-primary">View</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

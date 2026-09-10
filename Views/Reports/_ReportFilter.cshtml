@@ -1,0 +1,33 @@
+@model ElectricalBilling.ViewModels.ReportFilter
+@{
+    var action = ViewData["ReportAction"] as string ?? "Index";
+}
+<form method="get" asp-action="@action" class="row g-2 align-items-end mb-3">
+    <div class="col-md-3 col-6">
+        <label class="form-label small">From Date</label>
+        <input type="date" name="DateFrom" value="@Model.DateFrom?.ToString("yyyy-MM-dd")" class="form-control" />
+    </div>
+    <div class="col-md-3 col-6">
+        <label class="form-label small">To Date</label>
+        <input type="date" name="DateTo" value="@Model.DateTo?.ToString("yyyy-MM-dd")" class="form-control" />
+    </div>
+    <div class="col-md-3 col-6">
+        <label class="form-label small">Customer</label>
+        <select name="CustomerId" class="form-select" asp-items="ViewBag.Customers">
+            <option value="">All Customers</option>
+        </select>
+    </div>
+    <div class="col-md-2 col-6">
+        <label class="form-label small">Status</label>
+        <select name="Status" class="form-select">
+            <option value="">All</option>
+            @foreach (var status in Enum.GetValues<ElectricalBilling.Models.InvoiceStatus>())
+            {
+                <option value="@status" selected="@(Model.Status == status ? "selected" : null)">@status</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-1 col-12">
+        <button type="submit" class="btn btn-primary w-100">Go</button>
+    </div>
+</form>

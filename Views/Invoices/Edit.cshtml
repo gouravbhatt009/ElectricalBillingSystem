@@ -1,0 +1,22 @@
+@model ElectricalBilling.ViewModels.InvoiceViewModel
+@{
+    ViewData["Title"] = "Edit Bill";
+}
+
+<div class="px-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h3 class="fw-bold mb-0">Edit Bill — @Model.InvoiceNumber</h3>
+        <a asp-action="Details" asp-route-id="@Model.InvoiceId" class="btn btn-outline-secondary">Back to Bill</a>
+    </div>
+
+    <div class="card shadow-sm p-4">
+        <form asp-action="Edit" method="post">
+            @await Html.PartialAsync("_InvoiceForm", Model)
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/invoice.js" asp-append-version="true"></script>
+}

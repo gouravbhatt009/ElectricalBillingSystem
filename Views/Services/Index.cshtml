@@ -1,0 +1,67 @@
+@model List<ServiceViewModel>
+@{
+    ViewData["Title"] = "Service Master";
+}
+
+<div class="px-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h3 class="fw-bold mb-0">Service / Item Master</h3>
+        <a asp-controller="Services" asp-action="Create" class="btn btn-primary btn-lg">+ Add Service</a>
+    </div>
+    <p class="text-muted">
+        These are the services that appear as quick-pick options when creating an invoice.
+        The user can still type a custom description on the invoice screen if needed.
+    </p>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Description</th>
+                        <th>Default Rate</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        <tr>
+                            <td>@s.ServiceName</td>
+                            <td>@(s.Description ?? "-")</td>
+                            <td>@(s.DefaultRate.HasValue ? "₹" + s.DefaultRate.Value.ToString("N2") : "-")</td>
+                            <td>
+                                @if (s.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Edit" asp-route-id="@s.ServiceId" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                @if (s.IsActive)
+                                {
+                                    <form asp-action="Deactivate" asp-route-id="@s.ServiceId" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Deactivate this service?');">Deactivate</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="Reactivate" asp-route-id="@s.ServiceId" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Reactivate</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

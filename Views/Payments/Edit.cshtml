@@ -1,0 +1,108 @@
+@model ElectricalBilling.ViewModels.PaymentEditViewModel
+@{
+    ViewData["Title"] = "Edit Payment";
+}
+
+<div class="px-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h3 class="fw-bold mb-0">Edit Payment</h3>
+        <a asp-controller="Invoices" asp-action="Details" asp-route-id="@Model.InvoiceId" class="btn btn-outline-secondary">Back to Bill</a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-5">
+            <div class="card shadow-sm p-3">
+                <h5 class="mb-3">Bill Summary</h5>
+                <dl class="row mb-0">
+                    <dt class="col-6">Bill Number</dt><dd class="col-6 text-end">@Model.InvoiceNumber</dd>
+                    <dt class="col-6">Customer</dt><dd class="col-6 text-end">@Model.CustomerName</dd>
+                    <dt class="col-6">Invoice Date</dt><dd class="col-6 text-end">@Model.InvoiceDate.ToString("dd/MM/yyyy")</dd>
+                    <dt class="col-6">Invoice Total</dt><dd class="col-6 text-end">₹@Model.InvoiceTotal.ToString("N2")</dd>
+                    <dt class="col-6">Paid (other payments)</dt><dd class="col-6 text-end text-success">₹@Model.AlreadyPaid.ToString("N2")</dd>
+                    <dt class="col-6 fw-bold border-top pt-2 mt-2">Max for this payment</dt>
+                    <dd class="col-6 text-end fw-bold text-danger border-top pt-2 mt-2">₹@Model.Outstanding.ToString("N2")</dd>
+                </dl>
+            </div>
+
+            <div class="card shadow-sm p-3 mt-3">
+                <form asp-action="Delete" asp-route-id="@Model.PaymentId" asp-route-invoiceId="@Model.InvoiceId" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger btn-lg w-100" onclick="return confirm('Delete this payment? Outstanding amount and invoice status will be recalculated.');">Delete This Payment</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card shadow-sm p-4">
+                <form asp-action="Edit" method="post" id="editPaymentForm">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <input type="hidden" asp-for="PaymentId" />
+                    <input type="hidden" asp-for="InvoiceId" />
+                    <input type="hidden" asp-for="InvoiceNumber" />
+                    <input type="hidden" asp-for="CustomerName" />
+                    <input type="hidden" asp-for="InvoiceDate" />
+                    <input type="hidden" asp-for="InvoiceTotal" />
+                    <input type="hidden" asp-for="AlreadyPaid" />
+                    <input type="hidden" asp-for="Outstanding" />
+
+                    <div class="mb-3">
+                        <label asp-for="Amount" class="form-label">Payment Amount (₹)</label>
+                        <input asp-for="Amount" type="number" step="0.01" min="0.01" max="@Model.Outstanding" class="form-control form-control-lg" id="paymentAmount" />
+                        <span asp-validation-for="Amount" class="text-danger"></span>
+                        <div class="form-text">Maximum: ₹@Model.Outstanding.ToString("N2")</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PaymentDate" class="form-label">Payment Date</label>
+                        <input asp-for="PaymentDate" type="date" class="form-control" />
+                        <span asp-validation-for="PaymentDate" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PaymentMode" class="form-label">Payment Mode</label>
+                        <select asp-for="PaymentMode" class="form-select">
+                            <option value="">-- Select --</option>
+                            @foreach (var mode in Enum.GetValues<ElectricalBilling.Models.PaymentMode>())
+                            {
+                                <option value="@mode">@mode</option>
+                            }
+                        </select>
+                        <span asp-validation-for="PaymentMode" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ReferenceNumber" class="form-label">Reference Number (optional)</label>
+                        <input asp-for="ReferenceNumber" class="form-control" />
+                        <span asp-validation-for="ReferenceNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Notes" class="form-label">Notes (optional)</label>
+                        <textarea asp-for="Notes" class="form-control" rows="2"></textarea>
+                        <span asp-validation-for="Notes" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('editPaymentForm')?.addEventListener('submit', function (e) {
+            var input = document.getElementById('paymentAmount');
+            var max = @Html.Raw(Model.Outstanding.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            var val = parseFloat(input.value);
+            if (isNaN(val) || val <= 0) {
+                e.preventDefault();
+                alert('Enter a payment amount greater than zero.');
+            } else if (val > max) {
+                e.preventDefault();
+                alert('Payment amount cannot exceed ₹' + max.toFixed(2));
+            }
+        });
+    </script>
+}

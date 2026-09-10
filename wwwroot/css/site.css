@@ -1,0 +1,57 @@
+body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background-color: #f5f6f8;
+}
+
+.navbar-brand {
+    font-size: 1.3rem;
+}
+
+.card {
+    border-radius: 0.75rem;
+    border: none;
+}
+
+.btn-lg {
+    border-radius: 0.6rem;
+}
+
+/* Large, thumb-friendly buttons for mobile use on the shop floor */
+.btn-outline-primary.btn-lg {
+    font-size: 1.1rem;
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+}
+
+/* Phase 4: printing an invoice directly from the Details page.
+   Downloading the PDF is the more reliable option (consistent fonts/
+   layout regardless of the browser), but this keeps in-browser
+   printing usable too. */
+@media print {
+    .no-print,
+    .navbar,
+    .btn,
+    form,
+    .alert {
+        display: none !important;
+    }
+
+    body {
+        background: #fff;
+    }
+
+    .print-area {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 12mm;
+    }
+}

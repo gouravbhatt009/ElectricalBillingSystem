@@ -1,0 +1,63 @@
+@model ElectricalBilling.ViewModels.SalesSummaryViewModel
+@{
+    ViewData["Title"] = "Reports";
+    var filter = (ElectricalBilling.ViewModels.ReportFilter)ViewBag.Filter;
+    ViewData["ReportAction"] = "Index";
+}
+
+<div class="px-3">
+    <h3 class="fw-bold mb-3">Reports</h3>
+
+    <div class="card shadow-sm p-3 mb-3">
+        <partial name="_ReportFilter" model="filter" />
+    </div>
+
+    <div class="row g-2 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center">
+                <div class="text-muted small">Invoices</div>
+                <div class="fw-bold fs-4">@Model.InvoiceCount</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center">
+                <div class="text-muted small">Invoice Amount</div>
+                <div class="fw-bold fs-5">₹@Model.InvoiceAmount.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center">
+                <div class="text-muted small">Paid</div>
+                <div class="fw-bold fs-5 text-success">₹@Model.PaidAmount.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center">
+                <div class="text-muted small">Outstanding</div>
+                <div class="fw-bold fs-5 text-danger">₹@Model.OutstandingAmount.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="mb-2">Detailed Reports</h5>
+    <div class="row g-2">
+        <div class="col-6 col-md-4">
+            <a asp-action="Daily" class="btn btn-outline-primary btn-lg w-100">Daily Sales</a>
+        </div>
+        <div class="col-6 col-md-4">
+            <a asp-action="Monthly" class="btn btn-outline-primary btn-lg w-100">Monthly Sales</a>
+        </div>
+        <div class="col-6 col-md-4">
+            <a asp-action="CustomerWise" class="btn btn-outline-primary btn-lg w-100">Customer-wise Sales</a>
+        </div>
+        <div class="col-6 col-md-4">
+            <a asp-action="Pending" class="btn btn-outline-danger btn-lg w-100">Pending Payments</a>
+        </div>
+        <div class="col-6 col-md-4">
+            <a asp-action="Paid" class="btn btn-outline-success btn-lg w-100">Paid Invoices</a>
+        </div>
+        <div class="col-6 col-md-4">
+            <a asp-action="Outstanding" class="btn btn-outline-warning btn-lg w-100">Outstanding Amount</a>
+        </div>
+    </div>
+</div>

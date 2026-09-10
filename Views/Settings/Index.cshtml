@@ -1,0 +1,98 @@
+@model BusinessSettingViewModel
+@{
+    ViewData["Title"] = "Business Settings";
+}
+
+<div class="px-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0">Business Settings</h3>
+        <a asp-controller="Services" asp-action="Index" class="btn btn-outline-primary">Manage Services</a>
+    </div>
+
+    <form asp-controller="Settings" asp-action="Index" method="post" class="card p-4 shadow-sm">
+        <input type="hidden" asp-for="BusinessSettingId" />
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="BusinessName" class="form-label"></label>
+                <input asp-for="BusinessName" class="form-control" />
+                <span asp-validation-for="BusinessName" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Mobile" class="form-label"></label>
+                <input asp-for="Mobile" class="form-control" />
+                <span asp-validation-for="Mobile" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Address" class="form-label"></label>
+                <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="GSTIN" class="form-label"></label>
+                <input asp-for="GSTIN" class="form-control" />
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="InvoicePrefix" class="form-label"></label>
+                <input asp-for="InvoicePrefix" class="form-control" />
+                <span asp-validation-for="InvoicePrefix" class="text-danger"></span>
+                <div class="form-text">Bills will be numbered like @Model.InvoicePrefix-2026-0001</div>
+            </div>
+
+            <div class="col-md-6 d-flex align-items-end">
+                <div class="form-check form-switch fs-5">
+                    <input asp-for="GstEnabled" class="form-check-input" role="switch" />
+                    <label asp-for="GstEnabled" class="form-check-label">Enable GST on invoices</label>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <label asp-for="DefaultGstPercent" class="form-label"></label>
+                <input asp-for="DefaultGstPercent" class="form-control" type="number" step="0.01" />
+            </div>
+            <div class="col-md-4">
+                <label asp-for="CgstPercent" class="form-label"></label>
+                <input asp-for="CgstPercent" class="form-control" type="number" step="0.01" />
+            </div>
+            <div class="col-md-4">
+                <label asp-for="SgstPercent" class="form-label"></label>
+                <input asp-for="SgstPercent" class="form-control" type="number" step="0.01" />
+            </div>
+
+            <div class="col-12">
+                <label asp-for="InvoiceFooter" class="form-label"></label>
+                <input asp-for="InvoiceFooter" class="form-control" />
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="BankDetails" class="form-label"></label>
+                <textarea asp-for="BankDetails" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="UpiId" class="form-label"></label>
+                <input asp-for="UpiId" class="form-control" />
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary btn-lg px-5">Save Settings</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

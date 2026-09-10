@@ -1,0 +1,151 @@
+@model ElectricalBilling.ViewModels.DashboardViewModel
+@using ElectricalBilling.Models
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="px-3">
+    <h3 class="fw-bold mb-3">Dashboard</h3>
+
+    <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center h-100">
+                <div class="text-muted small">Total Customers</div>
+                <div class="fw-bold fs-3">@Model.TotalCustomers</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center h-100">
+                <div class="text-muted small">Total Invoices</div>
+                <div class="fw-bold fs-3">@Model.TotalInvoices</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center h-100">
+                <div class="text-muted small">Today's Invoices</div>
+                <div class="fw-bold fs-3">@Model.TodayInvoiceCount</div>
+                <div class="text-muted small">₹@Model.TodayInvoiceAmount.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center h-100">
+                <div class="text-muted small">This Month</div>
+                <div class="fw-bold fs-4">₹@Model.CurrentMonthInvoiceAmount.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card shadow-sm p-3 text-center h-100 border-success">
+                <div class="text-muted small">Total Paid</div>
+                <div class="fw-bold fs-4 text-success">₹@Model.TotalPaidAmount.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card shadow-sm p-3 text-center h-100 border-danger">
+                <div class="text-muted small">Pending</div>
+                <div class="fw-bold fs-4 text-danger">₹@Model.TotalPendingAmount.ToString("N2")</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card shadow-sm p-3 text-center h-100 border-warning">
+                <div class="text-muted small">Total Outstanding</div>
+                <div class="fw-bold fs-4 text-warning-emphasis">₹@Model.TotalOutstandingAmount.ToString("N2")</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm p-3 mb-3">
+        <h5 class="mb-3">Quick Actions</h5>
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-controller="Invoices" asp-action="Create" class="btn btn-primary btn-lg">+ New Bill</a>
+            <a asp-controller="Customers" asp-action="Index" class="btn btn-outline-primary btn-lg">Customers</a>
+            <a asp-controller="Invoices" asp-action="Index" class="btn btn-outline-primary btn-lg">Bills</a>
+            <a asp-controller="Payments" asp-action="Index" class="btn btn-outline-primary btn-lg">Payments</a>
+            <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-primary btn-lg">Reports</a>
+            <a asp-controller="Settings" asp-action="Index" class="btn btn-outline-secondary btn-lg">Settings</a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card shadow-sm p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0">Recent Invoices</h5>
+                    <a asp-controller="Invoices" asp-action="Index" class="small">View all</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Bill No</th><th>Customer</th><th>Date</th>
+                                <th class="text-end">Amount</th><th class="text-end">Paid</th>
+                                <th class="text-end">Outstanding</th><th>Status</th><th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.RecentInvoices.Any())
+                            {
+                                <tr><td colspan="8" class="text-center text-muted py-3">No invoices yet.</td></tr>
+                            }
+                            @foreach (var inv in Model.RecentInvoices)
+                            {
+                                <tr>
+                                    <td>@inv.InvoiceNumber</td>
+                                    <td>@inv.CustomerName</td>
+                                    <td>@inv.InvoiceDate.ToString("dd/MM/yy")</td>
+                                    <td class="text-end">₹@inv.GrandTotal.ToString("N2")</td>
+                                    <td class="text-end text-success">₹@inv.PaidAmount.ToString("N2")</td>
+                                    <td class="text-end @(inv.OutstandingAmount > 0 ? "text-danger" : "")">₹@inv.OutstandingAmount.ToString("N2")</td>
+                                    <td>
+                                        @switch (inv.Status)
+                                        {
+                                            case InvoiceStatus.Paid: <span class="badge bg-success">Paid</span> break;
+                                            case InvoiceStatus.Partial: <span class="badge bg-warning text-dark">Partial</span> break;
+                                            case InvoiceStatus.Cancelled: <span class="badge bg-secondary">Cancelled</span> break;
+                                            default: <span class="badge bg-danger">Pending</span> break;
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-controller="Invoices" asp-action="Details" asp-route-id="@inv.InvoiceId" class="btn btn-sm btn-outline-primary">View</a>
+                                        <a asp-controller="Invoices" asp-action="DownloadPdf" asp-route-id="@inv.InvoiceId" class="btn btn-sm btn-outline-secondary">PDF</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card shadow-sm p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0">Recent Payments</h5>
+                    <a asp-controller="Payments" asp-action="Index" class="small">View all</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr><th>Date</th><th>Bill No</th><th>Customer</th><th>Mode</th><th class="text-end">Amount</th></tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.RecentPayments.Any())
+                            {
+                                <tr><td colspan="5" class="text-center text-muted py-3">No payments yet.</td></tr>
+                            }
+                            @foreach (var p in Model.RecentPayments)
+                            {
+                                <tr>
+                                    <td>@p.PaymentDate.ToString("dd/MM/yy")</td>
+                                    <td>@p.InvoiceNumber</td>
+                                    <td>@p.CustomerName</td>
+                                    <td>@p.PaymentMode</td>
+                                    <td class="text-end">₹@p.Amount.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

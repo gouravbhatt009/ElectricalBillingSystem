@@ -1,0 +1,49 @@
+@model List<ElectricalBilling.ViewModels.DailySalesReportItem>
+@{
+    ViewData["Title"] = "Daily Sales Report";
+    var filter = (ElectricalBilling.ViewModels.ReportFilter)ViewBag.Filter;
+    ViewData["ReportAction"] = "Daily";
+}
+
+<div class="px-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h3 class="fw-bold mb-0">Daily Sales Report</h3>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary">Back to Reports</a>
+            <a asp-action="Export" asp-route-type="daily"
+               asp-route-DateFrom="@filter.DateFrom?.ToString("yyyy-MM-dd")" asp-route-DateTo="@filter.DateTo?.ToString("yyyy-MM-dd")"
+               asp-route-CustomerId="@filter.CustomerId" asp-route-Status="@filter.Status"
+               class="btn btn-success">Export CSV</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm p-3 mb-3">
+        <partial name="_ReportFilter" model="filter" />
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>Date</th><th class="text-end">Invoice Count</th><th class="text-end">Total Amount</th><th class="text-end">Paid</th><th class="text-end">Outstanding</th></tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-4">No data for this period.</td></tr>
+                    }
+                    @foreach (var row in Model)
+                    {
+                        <tr>
+                            <td>@row.Date.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end">@row.InvoiceCount</td>
+                            <td class="text-end">₹@row.TotalAmount.ToString("N2")</td>
+                            <td class="text-end text-success">₹@row.Paid.ToString("N2")</td>
+                            <td class="text-end text-danger">₹@row.Outstanding.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

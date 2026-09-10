@@ -1,0 +1,76 @@
+@model CustomerViewModel
+
+<input type="hidden" asp-for="CustomerId" />
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="CustomerName" class="form-label"></label>
+        <input asp-for="CustomerName" class="form-control" autofocus />
+        <span asp-validation-for="CustomerName" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Mobile" class="form-label"></label>
+        <input asp-for="Mobile" class="form-control" placeholder="10-digit mobile number" />
+        <span asp-validation-for="Mobile" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="CompanyName" class="form-label"></label>
+        <input asp-for="CompanyName" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="AlternateMobile" class="form-label"></label>
+        <input asp-for="AlternateMobile" class="form-control" />
+        <span asp-validation-for="AlternateMobile" class="text-danger"></span>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="Address" class="form-label"></label>
+        <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+    </div>
+
+    <div class="col-md-4">
+        <label asp-for="City" class="form-label"></label>
+        <input asp-for="City" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="State" class="form-label"></label>
+        <input asp-for="State" class="form-control" />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Pincode" class="form-label"></label>
+        <input asp-for="Pincode" class="form-control" />
+        <span asp-validation-for="Pincode" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="GSTIN" class="form-label"></label>
+        <input asp-for="GSTIN" class="form-control" />
+    </div>
+
+    <div class="col-12">
+        <label asp-for="Notes" class="form-label"></label>
+        <textarea asp-for="Notes" class="form-control" rows="2"></textarea>
+    </div>
+
+    @if (Model.CustomerId != 0)
+    {
+        <div class="col-12">
+            <div class="form-check form-switch fs-5">
+                <input asp-for="IsActive" class="form-check-input" role="switch" />
+                <label asp-for="IsActive" class="form-check-label"></label>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="mt-4">
+    <button type="submit" class="btn btn-primary btn-lg px-5">Save Customer</button>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancel</a>
+</div>

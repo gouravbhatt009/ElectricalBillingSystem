@@ -1,0 +1,61 @@
+@model List<ElectricalBilling.ViewModels.OutstandingReportItem>
+@using ElectricalBilling.Models
+@{
+    ViewData["Title"] = "Outstanding Report";
+    var filter = (ElectricalBilling.ViewModels.ReportFilter)ViewBag.Filter;
+    ViewData["ReportAction"] = "Outstanding";
+}
+
+<div class="px-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h3 class="fw-bold mb-0">Outstanding Report</h3>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary">Back to Reports</a>
+            <a asp-action="Export" asp-route-type="outstanding"
+               asp-route-DateFrom="@filter.DateFrom?.ToString("yyyy-MM-dd")" asp-route-DateTo="@filter.DateTo?.ToString("yyyy-MM-dd")"
+               asp-route-CustomerId="@filter.CustomerId"
+               class="btn btn-success">Export CSV</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm p-3 mb-3">
+        <partial name="_ReportFilter" model="filter" />
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>Customer</th><th>Bill No</th><th>Invoice Date</th><th class="text-end">Invoice Amount</th><th class="text-end">Paid</th><th class="text-end">Outstanding</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-4">No outstanding amounts for this period.</td></tr>
+                    }
+                    @foreach (var row in Model)
+                    {
+                        <tr>
+                            <td>@row.CustomerName</td>
+                            <td><a asp-controller="Invoices" asp-action="Details" asp-route-id="@row.InvoiceId">@row.InvoiceNumber</a></td>
+                            <td>@row.InvoiceDate.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end">₹@row.InvoiceAmount.ToString("N2")</td>
+                            <td class="text-end text-success">₹@row.Paid.ToString("N2")</td>
+                            <td class="text-end fw-bold text-danger">₹@row.Outstanding.ToString("N2")</td>
+                            <td>
+                                @if (row.Status == InvoiceStatus.Partial)
+                                {
+                                    <span class="badge bg-warning text-dark">Partial</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Pending</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

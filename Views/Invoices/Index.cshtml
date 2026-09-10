@@ -1,0 +1,152 @@
+@model ElectricalBilling.ViewModels.PagedResult<ElectricalBilling.ViewModels.InvoiceListItemViewModel>
+@using ElectricalBilling.Models
+@using ElectricalBilling.ViewModels
+@{
+    ViewData["Title"] = "Bills";
+    var filter = (InvoiceSearchFilter)(ViewData["Filter"] ?? new InvoiceSearchFilter());
+}
+
+<div class="px-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h3 class="fw-bold mb-0">Bills</h3>
+        <a asp-action="Create" class="btn btn-primary btn-lg">+ New Bill</a>
+    </div>
+
+    <div class="card shadow-sm p-3 mb-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-end">
+            <div class="col-md-3 col-6">
+                <label class="form-label small">Bill No.</label>
+                <input type="text" name="BillNumber" value="@filter.BillNumber" class="form-control" placeholder="ELB-2026-0001" />
+            </div>
+            <div class="col-md-3 col-6">
+                <label class="form-label small">Customer / Mobile</label>
+                <input type="text" name="Customer" value="@filter.Customer" class="form-control" />
+            </div>
+            <div class="col-md-2 col-6">
+                <label class="form-label small">From</label>
+                <input type="date" name="DateFrom" value="@filter.DateFrom?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-md-2 col-6">
+                <label class="form-label small">To</label>
+                <input type="date" name="DateTo" value="@filter.DateTo?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-md-1 col-6">
+                <label class="form-label small">Status</label>
+                <select name="Status" class="form-select">
+                    <option value="">All</option>
+                    @foreach (var status in Enum.GetValues<InvoiceStatus>())
+                    {
+                        <option value="@status" selected="@(filter.Status == status ? "selected" : null)">@status</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-1 col-6">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Bill No</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th class="text-end">Amount</th>
+                        <th class="text-end">Paid</th>
+                        <th class="text-end">Remaining</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="8" class="text-center text-muted py-4">No bills found.</td></tr>
+                    }
+                    @foreach (var invoice in Model.Items)
+                    {
+                        <tr>
+                            <td>@invoice.InvoiceNumber</td>
+                            <td>@invoice.InvoiceDate.ToString("dd/MM/yyyy")</td>
+                            <td>@invoice.CustomerName <span class="text-muted small">(@invoice.CustomerMobile)</span></td>
+                            <td class="text-end">₹@invoice.GrandTotal.ToString("N2")</td>
+                            <td class="text-end text-success">₹@invoice.PaidAmount.ToString("N2")</td>
+                            <td class="text-end @(invoice.OutstandingAmount > 0 ? "text-danger" : "")">₹@invoice.OutstandingAmount.ToString("N2")</td>
+                            <td>
+                                @switch (invoice.Status)
+                                {
+                                    case InvoiceStatus.Paid:
+                                        <span class="badge bg-success">Paid</span>
+                                        break;
+                                    case InvoiceStatus.Partial:
+                                        <span class="badge bg-warning text-dark">Partial</span>
+                                        break;
+                                    case InvoiceStatus.Cancelled:
+                                        <span class="badge bg-secondary">Cancelled</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-danger">Pending</span>
+                                        break;
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex flex-wrap gap-1 justify-content-end">
+                                    <a asp-action="Details" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-primary">View</a>
+                                    <a asp-action="DownloadPdf" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-secondary">PDF</a>
+                                    @if (invoice.Status != InvoiceStatus.Cancelled)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    }
+                                    @if (invoice.Status != InvoiceStatus.Cancelled && invoice.Status != InvoiceStatus.Paid)
+                                    {
+                                        <a asp-controller="Payments" asp-action="Add" asp-route-invoiceId="@invoice.InvoiceId" class="btn btn-sm btn-outline-success">Payment</a>
+                                    }
+                                    @if (invoice.Status != InvoiceStatus.Cancelled)
+                                    {
+                                        <form asp-controller="Invoices" asp-action="Cancel" asp-route-id="@invoice.InvoiceId" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this invoice? This cannot be undone.');">Cancel</button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-3" aria-label="Bill list pages">
+            <ul class="pagination justify-content-center flex-wrap">
+                <li class="page-item @(Model.HasPrevious ? "" : "disabled")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-BillNumber="@filter.BillNumber" asp-route-Customer="@filter.Customer"
+                       asp-route-DateFrom="@filter.DateFrom?.ToString("yyyy-MM-dd")" asp-route-DateTo="@filter.DateTo?.ToString("yyyy-MM-dd")"
+                       asp-route-Status="@filter.Status" asp-route-PageNumber="@(Model.PageNumber - 1)">Previous</a>
+                </li>
+                @for (var p = 1; p <= Model.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.PageNumber ? "active" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-BillNumber="@filter.BillNumber" asp-route-Customer="@filter.Customer"
+                           asp-route-DateFrom="@filter.DateFrom?.ToString("yyyy-MM-dd")" asp-route-DateTo="@filter.DateTo?.ToString("yyyy-MM-dd")"
+                           asp-route-Status="@filter.Status" asp-route-PageNumber="@p">@p</a>
+                    </li>
+                }
+                <li class="page-item @(Model.HasNext ? "" : "disabled")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-BillNumber="@filter.BillNumber" asp-route-Customer="@filter.Customer"
+                       asp-route-DateFrom="@filter.DateFrom?.ToString("yyyy-MM-dd")" asp-route-DateTo="@filter.DateTo?.ToString("yyyy-MM-dd")"
+                       asp-route-Status="@filter.Status" asp-route-PageNumber="@(Model.PageNumber + 1)">Next</a>
+                </li>
+            </ul>
+        </nav>
+        <p class="text-center text-muted small">Showing page @Model.PageNumber of @Model.TotalPages (@Model.TotalCount total bills)</p>
+    }
+</div>
