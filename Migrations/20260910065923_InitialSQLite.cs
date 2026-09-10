@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ElectricalBilling.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialSQLite : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,26 +17,26 @@ namespace ElectricalBilling.Migrations
                 name: "BusinessSettings",
                 columns: table => new
                 {
-                    BusinessSettingId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    BusinessName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
-                    Mobile = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
-                    GSTIN = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    InvoicePrefix = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    LogoPath = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
-                    SignaturePath = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
-                    GstEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    BusinessSettingId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    BusinessName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    Address = table.Column<string>(type: "TEXT", maxLength: 300, nullable: true),
+                    Mobile = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 150, nullable: true),
+                    GSTIN = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
+                    InvoicePrefix = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    LogoPath = table.Column<string>(type: "TEXT", maxLength: 300, nullable: true),
+                    SignaturePath = table.Column<string>(type: "TEXT", maxLength: 300, nullable: true),
+                    GstEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
                     DefaultGstPercent = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     CgstPercent = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     SgstPercent = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
-                    InvoiceFooter = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    BankDetails = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    UpiId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    InvoiceFooter = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    BankDetails = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    UpiId = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -47,22 +47,22 @@ namespace ElectricalBilling.Migrations
                 name: "Customers",
                 columns: table => new
                 {
-                    CustomerId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CustomerName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    CompanyName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
-                    City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    State = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Pincode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
-                    Mobile = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    AlternateMobile = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
-                    GSTIN = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    CustomerId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    CustomerName = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
+                    CompanyName = table.Column<string>(type: "TEXT", maxLength: 150, nullable: true),
+                    Address = table.Column<string>(type: "TEXT", maxLength: 300, nullable: true),
+                    City = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    State = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    Pincode = table.Column<string>(type: "TEXT", maxLength: 10, nullable: true),
+                    Mobile = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    AlternateMobile = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 150, nullable: true),
+                    GSTIN = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
+                    Notes = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -73,13 +73,13 @@ namespace ElectricalBilling.Migrations
                 name: "Services",
                 columns: table => new
                 {
-                    ServiceId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ServiceName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    ServiceId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ServiceName = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     DefaultRate = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -90,16 +90,16 @@ namespace ElectricalBilling.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FullName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Username = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LastLoginAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UserId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    FullName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Username = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
+                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    LastLoginAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -110,22 +110,22 @@ namespace ElectricalBilling.Migrations
                 name: "Invoices",
                 columns: table => new
                 {
-                    InvoiceId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    InvoiceNumber = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    CustomerId = table.Column<int>(type: "int", nullable: false),
-                    InvoiceDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    GstEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    InvoiceId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    InvoiceNumber = table.Column<string>(type: "TEXT", maxLength: 30, nullable: false),
+                    CustomerId = table.Column<int>(type: "INTEGER", nullable: false),
+                    InvoiceDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    GstEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
                     CgstPercent = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     SgstPercent = table.Column<decimal>(type: "decimal(5,2)", nullable: false),
                     SubTotal = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
                     CgstAmount = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
                     SgstAmount = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
                     GrandTotal = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Status = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    Notes = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -142,12 +142,12 @@ namespace ElectricalBilling.Migrations
                 name: "InvoiceItems",
                 columns: table => new
                 {
-                    InvoiceItemId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    InvoiceId = table.Column<int>(type: "int", nullable: false),
-                    ServiceId = table.Column<int>(type: "int", nullable: true),
-                    SNo = table.Column<int>(type: "int", nullable: false),
-                    Particular = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
+                    InvoiceItemId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    InvoiceId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ServiceId = table.Column<int>(type: "INTEGER", nullable: true),
+                    SNo = table.Column<int>(type: "INTEGER", nullable: false),
+                    Particular = table.Column<string>(type: "TEXT", maxLength: 300, nullable: false),
                     Qty = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     Rate = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(12,2)", nullable: false)
@@ -173,16 +173,16 @@ namespace ElectricalBilling.Migrations
                 name: "Payments",
                 columns: table => new
                 {
-                    PaymentId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    InvoiceId = table.Column<int>(type: "int", nullable: false),
+                    PaymentId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    InvoiceId = table.Column<int>(type: "INTEGER", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(12,2)", nullable: false),
-                    PaymentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    PaymentMode = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    ReferenceNumber = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    PaymentDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    PaymentMode = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    ReferenceNumber = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    Notes = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
