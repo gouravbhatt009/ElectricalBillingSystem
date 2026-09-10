@@ -1,6 +1,7 @@
 using ElectricalBilling.Data;
 using ElectricalBilling.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
 
@@ -58,6 +59,14 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 
 var app = builder.Build();
+
+// -------------------------------------------------------------------
+// Forwarded Headers for Cloud Reverse Proxies (Render SSL Support)
+// -------------------------------------------------------------------
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 // -------------------------------------------------------------------
 // 5. Apply migrations + seed initial admin account (first run only)
