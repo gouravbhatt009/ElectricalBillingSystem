@@ -27,11 +27,14 @@ namespace ElectricalBilling.Services
 
             var activeInvoices = _context.Invoices.Where(i => i.Status != InvoiceStatus.Cancelled);
 
-            var todayInvoices = await activeInvoices
+            // Fixed for SQLite: Fetch today's invoices into memory first before applying Sum on decimal
+            var todayInvoicesList = await activeInvoices
                 .Where(i => i.InvoiceDate >= today && i.InvoiceDate < today.AddDays(1))
-                .GroupBy(i => 1)
-                .Select(g => new { Count = g.Count(), Amount = g.Sum(i => i.GrandTotal) })
-                .FirstOrDefaultAsync();
+                .Select(i => new { i.GrandTotal })
+                .ToListAsync();
+
+            var todayInvoiceCount = todayInvoicesList.Count;
+            var todayInvoiceAmount = todayInvoicesList.Sum(i => i.GrandTotal);
 
             var currentMonthAmount = await activeInvoices
                 .Where(i => i.InvoiceDate >= monthStart && i.InvoiceDate < monthEnd)
@@ -89,8 +92,8 @@ namespace ElectricalBilling.Services
             {
                 TotalCustomers = totalCustomers,
                 TotalInvoices = totalInvoices,
-                TodayInvoiceCount = todayInvoices?.Count ?? 0,
-                TodayInvoiceAmount = todayInvoices?.Amount ?? 0,
+                TodayInvoiceCount = todayInvoiceCount,
+                TodayInvoiceAmount = todayInvoiceAmount,
                 CurrentMonthInvoiceAmount = currentMonthAmount,
                 TotalPaidAmount = totalPaidAmount,
                 TotalPendingAmount = totalPendingAmount,
